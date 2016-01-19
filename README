@@ -1,0 +1,75 @@
+=================
+foxBMS frontdesk
+================
+
+:author:  Tim Fühner <tim.fuehner@iisb.fraunhofer.de>
+:version: 0.1
+:date:    2016-01-19 
+
+
+.. note:
+
+   This is work in progress. 
+
+Introduction
+============
+
+This Python packages aims at being the main entry point both for users and
+developers of *foxBMS*. It provides a simple and easy-to-use graphical user
+interface, written in *wxPython*, which walks you through the
+configuration, build and flash process of the *foxBMS* ROM.
+
+
+A first preview of the configure facilities is provided through the
+``foxconfigure`` program that is available after installation of the
+package.
+
+
+Building the Package 
+====================
+
+Since the package will be distributed for the *foxConda* environment, it is
+deployed as an Anaconda package. The according build recipe files are
+located in the ``conda-recipe`` directory in the GIT root directory of the
+package.
+
+.. todo:
+
+   - Currently only the POSIX build script is implemented.
+   - Dependencies will have to be updated
+
+To build the package, change into the respective local GIT working
+directory and issue::
+
+    python conda build conda-recipe
+
+Afterward, the ready-built package is located in the platform ѕubdirectory
+of the ``conda-bld`` directory of your *foxConda* installation. For
+example::
+
+    $USER/foxconda/conda-bld/osx-64/foxbms-0.1-py27_0.tar.bz2
+
+The exact file path will be displayed at the end of the conda build step;
+like so::
+
+    # If you want to upload this package to anaconda.org later, type:
+    #
+    # $ anaconda upload $USER/foxconda/conda-bld/osx-64/foxbms-0.1-py 27_0.tar.bz2
+    #
+    # To have conda build upload to anaconda.org automatically, use
+    # $ conda config --set anaconda_upload yes
+
+.. important:
+
+   Ignore the Anaconda upload instructions. At this point, we do not want
+   to upload anything to any server!!!
+
+   It is safe, however, to locally install the package.
+
+
+To install it, simply run::
+
+    $USER/foxconda/conda-bld/osx-64/foxbms-0.1-py27_0.tar.bz2
+
+
+

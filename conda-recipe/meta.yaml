@@ -1,0 +1,24 @@
+package:
+    name: foxbms
+    version: "0.1"
+
+source:
+    path: ..
+
+build:
+    osx_is_app: True
+    entry_points:
+        - foxconfig = foxbms.configure:main
+
+requirements:
+    build:
+        - python
+        - setuptools
+    run:
+        - python
+
+about:
+    home: http://www.foxbms.org
+    license: BSD
+    license_file: LICENSE
+
