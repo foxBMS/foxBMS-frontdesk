@@ -10,6 +10,7 @@ build:
     osx_is_app: True
     entry_points:
         - foxconfig = foxbms.configure:main
+        - foxbms = foxbms.foxfdd:main
 
 requirements:
     build:
@@ -17,6 +18,7 @@ requirements:
         - setuptools
     run:
         - python
+        - wxpython
 
 about:
     home: http://www.foxbms.org
