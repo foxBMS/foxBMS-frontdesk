@@ -6,6 +6,7 @@ source:
     path: ..
 
 build:
+    number: 1
     osx_is_app: True
     entry_points:
         - foxconfig = foxbms.configure:main
