@@ -14,7 +14,7 @@ setup(
         author = "Tim Fuehner",
         author_email = "tim.fuehner@iisb.fraunhofer.de",
         package_data={'foxbms': ['xrc/*',]},
-
+        zip_safe = False
         )
 
 
