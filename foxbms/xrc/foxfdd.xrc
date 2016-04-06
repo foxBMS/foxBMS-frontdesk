@@ -1,1 +1,588 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">	<object class="wxFrame" name="frontdesk_mframe">		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>		<size>680,715</size>		<title>foxBMS frontdesk</title>		<centered>1</centered>		<aui_managed>0</aui_managed>		<object class="wxBoxSizer">			<orient>wxVERTICAL</orient>			<object class="sizeritem">				<option>1</option>				<flag>wxEXPAND | wxALL</flag>				<border>5</border>				<object class="wxNotebook" name="main_nb">					<object class="notebookpage">						<label>Install foxBMS source project</label>						<selected>0</selected>						<object class="wxPanel" name="install_page">							<style>wxTAB_TRAVERSAL</style>							<object class="wxBoxSizer">								<orient>wxVERTICAL</orient>								<object class="sizeritem">									<option>0</option>									<flag>wxALL</flag>									<border>5</border>									<object class="wxRadioBox" name="project_radio">										<style>wxRA_SPECIFY_COLS</style>										<label>Project</label>										<selection>0</selection>										<content>											<item>Create New Project</item>											<item>Open Existing Project</item>										</content>										<dimension>1</dimension>									</object>								</object>								<object class="spacer">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<size>0,0</size>								</object>								<object class="sizeritem">									<option>1</option>									<flag>wxEXPAND | wxALL</flag>									<border>5</border>									<object class="wxPanel" name="new_panel">										<style>wxTAB_TRAVERSAL</style>										<enabled>0</enabled>										<object class="wxBoxSizer">											<orient>wxVERTICAL</orient>											<object class="sizeritem">												<option>0</option>												<flag>wxALL</flag>												<border>5</border>												<object class="wxStaticText" name="archive_st">													<label>Install foxBMS source archive</label>													<wrap>-1</wrap>												</object>											</object>											<object class="sizeritem">												<option>0</option>												<flag>wxALL|wxEXPAND</flag>												<border>5</border>												<object class="wxFilePickerCtrl" name="archive_fp">													<value></value>													<message>Select the foxBMS source archive</message>													<wildcard>*.*</wildcard>													<style>wxFLP_DEFAULT_STYLE</style>												</object>											</object>											<object class="spacer">												<option>1</option>												<flag></flag>												<border>2</border>												<size>0,0</size>											</object>											<object class="sizeritem">												<option>0</option>												<flag>wxALL</flag>												<border>5</border>												<object class="wxStaticText" name="dest_st">													<label>into workspace directory</label>													<wrap>-1</wrap>												</object>											</object>											<object class="sizeritem">												<option>0</option>												<flag>wxALL|wxEXPAND</flag>												<border>5</border>												<object class="wxDirPickerCtrl" name="dest_dp">													<value></value>													<message>Select the workspace folder for the foxBMS project</message>													<style>wxDIRP_DEFAULT_STYLE</style>												</object>											</object>										</object>									</object>								</object>								<object class="spacer">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<size>0,0</size>								</object>								<object class="sizeritem">									<option>0</option>									<flag>wxALL</flag>									<border>5</border>									<object class="wxStaticText" name="existing_st">										<enabled>0</enabled>										<label>Open existing project folder</label>										<wrap>-1</wrap>									</object>								</object>								<object class="sizeritem">									<option>0</option>									<flag>wxALL|wxEXPAND</flag>									<border>5</border>									<object class="wxDirPickerCtrl" name="existing_dp">										<value></value>										<message>Select a folder</message>										<style>wxDIRP_DEFAULT_STYLE</style>										<enabled>0</enabled>									</object>								</object>								<object class="sizeritem">									<option>0</option>									<flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>									<border>5</border>									<object class="wxButton" name="install_b">										<enabled>0</enabled>										<label>Install and initialize project</label>										<default>0</default>									</object>								</object>							</object>						</object>					</object>					<object class="notebookpage">						<label>Build ROM</label>						<selected>0</selected>						<object class="wxPanel" name="build_page">							<style>wxTAB_TRAVERSAL</style>							<enabled>0</enabled>							<object class="wxBoxSizer">								<orient>wxVERTICAL</orient>								<object class="spacer">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<size>0,0</size>								</object>								<object class="sizeritem">									<option>0</option>									<flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>									<border>5</border>									<object class="wxButton" name="build_b">										<label>Build ROM</label>										<default>0</default>									</object>								</object>								<object class="spacer">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<size>0,0</size>								</object>							</object>						</object>					</object>					<object class="notebookpage">						<label>Flash ROM</label>						<selected>0</selected>						<object class="wxPanel" name="flash_page">							<style>wxTAB_TRAVERSAL</style>							<object class="wxBoxSizer">								<orient>wxVERTICAL</orient>								<object class="spacer">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<size>0,0</size>								</object>								<object class="sizeritem">									<option>0</option>									<flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>									<border>5</border>									<object class="wxButton" name="flash_b">										<label>Flash ROM</label>										<default>0</default>									</object>								</object>								<object class="spacer">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<size>0,0</size>								</object>							</object>						</object>					</object>				</object>			</object>			<object class="sizeritem">				<option>0</option>				<flag>wxEXPAND</flag>				<border>5</border>				<object class="wxBoxSizer">					<orient>wxVERTICAL</orient>					<object class="sizeritem">						<option>0</option>						<flag>wxEXPAND | wxALL</flag>						<border>5</border>						<object class="wxStaticLine" name="m_staticline1">							<style>wxLI_HORIZONTAL</style>						</object>					</object>					<object class="sizeritem">						<option>0</option>						<flag>wxALL|wxEXPAND</flag>						<border>5</border>						<object class="wxGauge" name="progress">							<style>wxGA_HORIZONTAL</style>							<range>100</range>							<value>0</value>						</object>					</object>					<object class="sizeritem">						<option>1</option>						<flag>wxEXPAND</flag>						<border>5</border>						<object class="wxBoxSizer">							<orient>wxHORIZONTAL</orient>							<object class="sizeritem">								<option>0</option>								<flag>wxALL</flag>								<border>5</border>								<object class="wxStaticText" name="m_staticText21">									<label>Output</label>									<wrap>-1</wrap>								</object>							</object>							<object class="spacer">								<option>1</option>								<flag>wxEXPAND</flag>								<border>5</border>								<size>0,0</size>							</object>							<object class="sizeritem">								<option>0</option>								<flag>wxALL</flag>								<border>5</border>								<object class="wxButton" name="clear_b">									<label>Clear</label>									<default>0</default>								</object>							</object>						</object>					</object>					<object class="sizeritem">						<option>0</option>						<flag>wxALL|wxEXPAND</flag>						<border>5</border>						<object class="wxTextCtrl" name="details_tc">							<style>wxHSCROLL|wxTE_MULTILINE|wxTE_READONLY</style>							<size>-1,150</size>							<value></value>						</object>					</object>				</object>			</object>		</object>	</object></resource>
+<?xml version="1.0" encoding="UTF-8"?>
+<resource class="wxStaticLine" version="2.3.0.1" xmlns="http://www.wxwindows.org/wxxrc">
+  <object class="wxFrame" name="frontdesk_mframe">
+    <object class="wxSplitterWindow">
+      <object class="wxNotebook" name="main_nb">
+        <object class="notebookpage">
+          <object class="wxPanel" name="projects_page">
+            <object class="wxBoxSizer">
+              <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>foxBMS workspaces directory</label>
+                </object>
+                <option>0</option>
+                <flag>wxEXPAND|wxALL</flag>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxFilePickerCtrl" name="workspace_dp">
+                  <message>Select workspace directory</message>
+                </object>
+                <option>0</option>
+                <flag>wxEXPAND|wxTOP|wxBOTTOM</flag>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Available projects</label>
+                </object>
+                <option>0</option>
+                <flag>wxEXPAND|wxALL</flag>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxListCtrl" name="projects_lb">
+                  <style>wxLC_REPORT|wxLC_SINGLE_SEL</style>
+                </object>
+                <option>1</option>
+                <flag>wxALL | wxEXPAND</flag>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxButton" name="add_dir_b">
+                      <label>Add from existing directory</label>
+                    </object>
+                    <option>0</option>
+                    <flag>wxRIGHT|wxTOP|wxBOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="add_archive_b">
+                      <label>Add from archive</label>
+                    </object>
+                    <flag>wxLEFT|wxTOP|wxBOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="add_repo_b">
+                      <label>Add from repository</label>
+                      <hidden>1</hidden>
+                    </object>
+                    <flag>wxLEFT|wxTOP|wxBOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="add_git_b">
+                      <label>Add from git</label>
+                      <hidden>1</hidden>
+                    </object>
+                    <flag>wxLEFT|wxTOP|wxBOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                  <orient>wxHORIZONTAL</orient>
+                </object>
+                <option>0</option>
+                <flag>wxALL|wxEXPAND</flag>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxButton" name="initialize_b">
+                      <size>200,-1</size>
+                      <label>Initialize project</label>
+                    </object>
+                    <option>0</option>
+                    <flag>wxALIGN_CENTRE_HORIZONTAL|wxALL|wxEXPAND</flag>
+                    <border>0</border>
+                  </object>
+                  <orient>wxHORIZONTAL</orient>
+                </object>
+                <option>0</option>
+                <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                <border>5</border>
+              </object>
+            </object>
+          </object>
+          <label>Projects</label>
+        </object>
+        <object class="notebookpage">
+          <object class="wxPanel" name="build_page">
+            <object class="wxBoxSizer">
+              <orient>wxVERTICAL</orient>
+              <object class="spacer">
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <size>0,0</size>
+              </object>
+              <object class="sizeritem">
+                <option>0</option>
+                <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
+                <border>5</border>
+                <object class="wxButton" name="build_b">
+                  <label>Build ROM</label>
+                  <default>0</default>
+                </object>
+              </object>
+              <object class="spacer">
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <size>0,0</size>
+              </object>
+            </object>
+            <enabled>0</enabled>
+            <style>wxTAB_TRAVERSAL</style>
+          </object>
+          <label>Build ROM</label>
+        </object>
+      </object>
+      <object class="wxPanel">
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+            
+          <object class="sizeritem">
+            <option>0</option>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+            <object class="wxGauge" name="progress">
+              <style>wxGA_HORIZONTAL</style>
+              <range>100</range>
+              <value>0</value>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <option>0</option>
+                <flag>wxALL</flag>
+                <border>5</border>
+                <object class="wxStaticText" name="m_staticText21">
+                  <label>Output</label>
+                  <wrap>-1</wrap>
+                </object>
+              </object>
+              <object class="spacer">
+                <size>0,0</size>
+                <option>0</option>
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <option>0</option>
+                <flag>wxALL</flag>
+                <border>5</border>
+                <object class="wxButton" name="clear_b">
+                  <label>Clear</label>
+                  <default>0</default>
+                </object>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+            <option>0</option>
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxTextCtrl" name="details_tc">
+              <size>-1,150</size>
+              <style>wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL|wxTE_RICH2</style>
+            </object>
+            <option>1</option>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+          </object>
+        </object>
+      </object>
+      <pos>1024,768</pos>
+      <orientation>horizontal</orientation>
+      <sashpos>500</sashpos>
+    </object>
+    <size>1024,768</size>
+    <title>foxBMS frontdesk</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+  </object>
+  <object class="wxPanel" name="install_page">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <option>0</option>
+        <flag>wxALL</flag>
+        <border>5</border>
+        <object class="wxRadioBox" name="project_radio">
+          <style>wxRA_SPECIFY_COLS</style>
+          <label>Project</label>
+          <selection>0</selection>
+          <content>
+            <item>Create New Project</item>
+            <item>Open Existing Project</item>
+          </content>
+          <dimension>1</dimension>
+        </object>
+      </object>
+      <object class="spacer">
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+        <border>5</border>
+        <size>0,0</size>
+      </object>
+      <object class="sizeritem">
+        <option>1</option>
+        <flag>wxEXPAND | wxALL</flag>
+        <border>5</border>
+        <object class="wxPanel" name="new_panel">
+          <style>wxTAB_TRAVERSAL</style>
+          <enabled>0</enabled>
+          <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+              <object class="wxStaticText" name="archive_st">
+                <label>Install foxBMS source archive</label>
+                <wrap>-1</wrap>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <option>0</option>
+              <flag>wxALL|wxEXPAND</flag>
+              <border>5</border>
+              <object class="wxFilePickerCtrl" name="archive_fp">
+                <value/>
+                <message>Select the foxBMS source archive</message>
+                <wildcard>*.*</wildcard>
+                <style>wxFLP_DEFAULT_STYLE</style>
+              </object>
+            </object>
+            <object class="spacer">
+              <option>1</option>
+              <flag/>
+              <border>2</border>
+              <size>0,0</size>
+            </object>
+            <object class="sizeritem">
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+              <object class="wxStaticText" name="dest_st">
+                <label>into workspace directory</label>
+                <wrap>-1</wrap>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <option>0</option>
+              <flag>wxALL|wxEXPAND</flag>
+              <border>5</border>
+              <object class="wxDirPickerCtrl" name="dest_dp">
+                <value/>
+                <message>Select the workspace folder for the foxBMS project</message>
+                <style>wxDIRP_DEFAULT_STYLE</style>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="spacer">
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+        <border>5</border>
+        <size>0,0</size>
+      </object>
+      <object class="sizeritem">
+        <option>0</option>
+        <flag>wxALL</flag>
+        <border>5</border>
+        <object class="wxStaticText" name="existing_st">
+          <enabled>0</enabled>
+          <label>Open existing project folder</label>
+          <wrap>-1</wrap>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <option>0</option>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+        <object class="wxDirPickerCtrl" name="existing_dp">
+          <value/>
+          <message>Select a folder</message>
+          <style>wxDIRP_DEFAULT_STYLE</style>
+          <enabled>0</enabled>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <option>0</option>
+        <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
+        <border>5</border>
+        <object class="wxButton" name="install_b">
+          <enabled>0</enabled>
+          <label>Install and initialize project</label>
+          <default>0</default>
+        </object>
+      </object>
+    </object>
+    <enabled>0</enabled>
+    <style>wxTAB_TRAVERSAL</style>
+  </object>
+  <object class="wxDialog" name="add_archive_dlg">
+    <object class="wxPanel">
+      <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+        <object class="sizeritem">
+          <object class="wxFilePickerCtrl" name="add_archive_fp">
+            <message>Select archive</message>
+            <style>wxFLP_OPEN|wxFLP_FILE_MUST_EXIST|wxFLP_DEFAULT_STYLE</style>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+          <minsize>300,-1</minsize>
+        </object>
+        <object class="sizeritem">
+          <object class="wxBoxSizer">
+            <object class="sizeritem">
+              <object class="wxStaticText">
+                <label>Project Name:</label>
+              </object>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <object class="sizeritem">
+              <object class="wxTextCtrl" name="project_name_tc"/>
+              <option>1</option>
+              <flag>wxALL|wxEXPAND</flag>
+              <border>5</border>
+            </object>
+            <orient>wxHORIZONTAL</orient>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxStaticText" name="add_archive_error_txt">
+            <size>-1,35</size>
+            <wrap>2</wrap>
+            <fg>#D70015</fg>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>10</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxBoxSizer">
+            <object class="sizeritem">
+              <object class="wxButton" name="wxID_OK">
+                <label>Add project</label>
+              </object>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <object class="sizeritem">
+              <object class="wxButton" name="wxID_CANCEL"/>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <orient>wxHORIZONTAL</orient>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+        </object>
+      </object>
+    </object>
+    <size>300,-1</size>
+    <title>Add project from archive</title>
+  </object>
+  <object class="wxDialog" name="add_dir_dlg">
+    <object class="wxPanel">
+      <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+        <object class="sizeritem">
+          <object class="wxDirPickerCtrl" name="add_dir_dp">
+            <message>Select directory</message>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+          <minsize>300,-1</minsize>
+        </object>
+        <object class="sizeritem">
+          <object class="wxBoxSizer">
+            <object class="sizeritem">
+              <object class="wxStaticText">
+                <label>Project Name:</label>
+              </object>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <object class="sizeritem">
+              <object class="wxTextCtrl" name="project_name_tc"/>
+              <option>1</option>
+              <flag>wxALL|wxEXPAND</flag>
+              <border>5</border>
+            </object>
+            <orient>wxHORIZONTAL</orient>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxStaticText" name="add_dir_error_txt">
+            <size>-1,35</size>
+            <wrap>2</wrap>
+            <fg>#D70015</fg>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>10</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxBoxSizer">
+            <object class="sizeritem">
+              <object class="wxButton" name="wxID_OK">
+                <label>Add project</label>
+              </object>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <object class="sizeritem">
+              <object class="wxButton" name="wxID_CANCEL"/>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <orient>wxHORIZONTAL</orient>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+        </object>
+      </object>
+    </object>
+    <size>300,-1</size>
+    <title>Add project from archive</title>
+  </object>
+  <object class="wxDialog" name="add_git_dlg">
+    <object class="wxPanel">
+      <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+        <object class="sizeritem">
+          <object class="wxStaticText">
+            <label>GIT repository</label>
+          </object>
+          <option>0</option>
+          <flag>wxALL</flag>
+          <border>5</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxTextCtrl" name="add_dir_dp"/>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+          <minsize>300,-1</minsize>
+        </object>
+        <object class="sizeritem">
+          <object class="wxBoxSizer">
+            <object class="sizeritem">
+              <object class="wxStaticText">
+                <label>Project Name:</label>
+              </object>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <object class="sizeritem">
+              <object class="wxTextCtrl" name="project_name_tc"/>
+              <option>1</option>
+              <flag>wxALL|wxEXPAND</flag>
+              <border>5</border>
+            </object>
+            <orient>wxHORIZONTAL</orient>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxStaticText" name="add_dir_error_txt">
+            <size>-1,35</size>
+            <wrap>2</wrap>
+            <fg>#D70015</fg>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>10</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxBoxSizer">
+            <object class="sizeritem">
+              <object class="wxButton" name="wxID_OK">
+                <label>Add project</label>
+              </object>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <object class="sizeritem">
+              <object class="wxButton" name="wxID_CANCEL"/>
+              <option>0</option>
+              <flag>wxALL</flag>
+              <border>5</border>
+            </object>
+            <orient>wxHORIZONTAL</orient>
+          </object>
+          <option>0</option>
+          <flag>wxALL|wxEXPAND</flag>
+          <border>5</border>
+        </object>
+      </object>
+    </object>
+    <size>300,-1</size>
+    <title>Add project from a GIT repository</title>
+  </object>
+  <object class="wxToolBar" name="main_tb">
+    <object class="tool" name="exit_tb">
+      <bitmap stock_id="wxART_QUIT"/>
+      <bitmap2 stock_id="wxART_QUIT"/>
+      <tooltip>Quit the foxBMS frontdesk</tooltip>
+      <label>Exit</label>
+    </object>
+    <object class="tool" name="documentation_tb">
+      <bitmap stock_id="wxART_HELP_BOOK"/>
+      <bitmap2 stock_id="wxART_HELP_BOOK"/>
+      <tooltip>Open the foxBMS documentation</tooltip>
+      <label>Documentation</label>
+    </object>
+    <object class="tool" name="reference_tb">
+      <bitmap stock_id="wxART_HELP_PAGE"/>
+      <bitmap2 stock_id="wxART_HELP_PAGE"/>
+      <tooltip>Open the foxBMS reference guide</tooltip>
+      <label>Reference Guide</label>
+    </object>
+  </object>
+  <object class="wxMenuBar" name="main_menu">
+    <object class="wxMenu" name="file_menu">
+      <object class="wxMenuItem" name="wxID_EXIT">
+        <label>&amp;Quit</label>
+        <accel>CTRL-Q</accel>
+      </object>
+      <label>File</label>
+    </object>
+    <object class="wxMenu" name="help_menu">
+      <object class="wxMenuItem" name="documentation_mi">
+        <label>&amp;Documentation</label>
+        <accel>F1</accel>
+      </object>
+      <object class="wxMenuItem" name="reference_mi">
+        <label>&amp;Reference</label>
+      </object>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="wxID_ABOUT">
+        <label>&amp;About</label>
+      </object>
+      <label>Help</label>
+    </object>
+  </object>
+</resource>

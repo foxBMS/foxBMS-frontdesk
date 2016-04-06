@@ -11,6 +11,7 @@ build:
     entry_points:
         - foxconfig = foxbms.configure:main
         - foxbms = foxbms.foxfdd:main
+        - foxygen = foxbms.foxygen:main
 
 requirements:
     build:
@@ -19,6 +20,10 @@ requirements:
     run:
         - python
         - wxpython
+        - docutils
+        - foxbmsflashtool
+        - pyyaml
+        - appdirs
 
 about:
     home: http://www.foxbms.org

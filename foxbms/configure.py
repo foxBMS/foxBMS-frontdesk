@@ -16,12 +16,105 @@ import threading
 import re
 import webbrowser
 import wx.propgrid as wxpg
+import logging
 
 from docutils.core import publish_parts
 
 
 import foxygen
 import threading
+
+def isFoxBMS(path):
+    '''
+    Educated guess if a path contains the foxBMS sources.
+    '''
+    if not os.path.isfile(os.path.join(path, 'wscript')):
+        return False
+    if not os.path.isfile(os.path.join(path, 'wscript')):
+        return False
+
+def isInitialized(path):
+    '''
+    Educated guess if configure and documentation generation have been
+    performed.
+    '''
+    if not os.path.isfile(os.path.join(path, 'build', 'doc', 'doxygen',
+        'html', 'index.html')):
+        return False
+    if not os.path.isfile(os.path.join(path, 'build', 'doc', 'sphinx', 'html', 'index.html')):
+        return False
+    if not os.path.isfile(os.path.join(path, 'build', 'foxbmsconfig.h')):
+        return False
+    return True
+
+class FBIntProperty(wxpg.PyIntProperty):
+    """
+
+    """
+    def __init__(self, label, name = wxpg.LABEL_AS_NAME, value=None,
+            variables = None):
+        self.variables = variables
+        self.label = label
+        wxpg.PyIntProperty.__init__(self, label, name, value)
+
+    def ValidateValue(self, value, validationInfo):
+        """ Let's limit the value to range -10000 and 10000.
+        """
+        # Just test this function to make sure validationInfo and
+        # wxPGVFBFlags work properly.
+        oldvfb__ = validationInfo.GetFailureBehavior()
+
+        # Mark the cell if validaton failred
+        validationInfo.SetFailureBehavior(wxpg.PG_VFB_MARK_CELL)
+
+        if self.variables[self.label].validate(value):
+            return (True, value)
+        else:
+            return False
+
+class FBFloatProperty(wxpg.PyFloatProperty):
+    """
+
+    """
+    def __init__(self, label, name = wxpg.LABEL_AS_NAME, value=None,
+            variables = None):
+        self.variables = variables
+        self.label = label
+        wxpg.PyFloatProperty.__init__(self, label, name, value)
+
+    def ValidateValue(self, value, validationInfo):
+        """ Let's limit the value to range -10000 and 10000.
+        """
+        # Just test this function to make sure validationInfo and
+        # wxPGVFBFlags work properly.
+        oldvfb__ = validationInfo.GetFailureBehavior()
+
+        # Mark the cell if validaton failred
+        validationInfo.SetFailureBehavior(wxpg.PG_VFB_MARK_CELL)
+
+        if self.variables[self.label].validate(value):
+            return (True, value)
+        else:
+            return False
+
+
+
+class TestValidator(wx.Validator):
+
+    def __init__(self):
+        wx.Validator.__init__(self)
+
+    def Clone(self):
+        return TestValidator()
+
+    def Validate(self,win):       
+        return False
+
+    def TransferToWindow(self):
+        return True # Prevent wxDialog from complaining.
+
+    def TransferFromWindow(self):
+        return True # Prevent wxDialog from complaining.
 
 
 class CollectThread(threading.Thread):
@@ -32,41 +125,8 @@ class CollectThread(threading.Thread):
 
     def run(self):
         #progress bar
-        #wx.CallAfter(self.parent.addProperty)
-        self.parent.variables = foxygen.Variables()
-        self.parent.stree = foxygen.SourceTree(self.parent.parent.root, self.parent.variables)
-        self.parent.stree.collect()
+        wx.CallAfter(self.parent.update)
 
-        for kp,vp in self.parent.pages.iteritems():
-
-            _groups = sorted(self.parent.variables.getGroups())
-
-            for g in _groups + [None]:
-
-                _vars = self.parent.variables.getVariables(levels = [kp], groups = [g], sort = True)
-                if len(_vars) < 1:
-                    continue
-
-                if g is None:
-                    vp.Append(wxpg.PropertyCategory('misc'))
-                else:
-                    vp.Append(wxpg.PropertyCategory(g))
-
-                for x in _vars:
-                    if x.type == int:
-                        prop = vp.Append( wxpg.IntProperty(x.name,value=x.value) )
-                    elif x.type == float:
-                        prop = vp.Append( wxpg.FloatProperty(x.name,value=x.value) )
-                    elif x.type == "toggle":
-                        prop = vp.Append( wxpg.BoolProperty(x.name,value=x.value) )
-                        self.parent.pg.SetPropertyAttribute(x.name, "UseCheckbox", True)
-                    elif x.type == "select":
-                        prop = vp.Append( wxpg.EnumProperty(x.name, x.name,
-                            x.choices, value = x.value))
-                    else:
-                        prop = vp.Append( wxpg.StringProperty(x.name,value=str(x.value)) )
-                    if kp == 'read-only':
-                        prop.Enable(False)
 
 
 def _getpath(*args):
@@ -97,6 +157,9 @@ class FBConfigurePanel(wx.Panel):
 
         self.pg_ctrl = self._resources.AttachUnknownControl("property_grid", self.pg, self)
         xrc.XRCCTRL(self, 'generate_b').Bind(wx.EVT_BUTTON, self.onGenerate)
+        xrc.XRCCTRL(self, 'reset_b').Bind(wx.EVT_BUTTON, self.onReset)
+        xrc.XRCCTRL(self, 'load_b').Bind(wx.EVT_BUTTON, self.onLoad)
+        xrc.XRCCTRL(self, 'save_b').Bind(wx.EVT_BUTTON, self.onSave)
 
         if init: 
             wx.CallAfter(self.collect)
@@ -110,21 +173,107 @@ class FBConfigurePanel(wx.Panel):
         #xrc.XRCCTRL(self, 'progress').SetMaxSize((-1, 3))
 
         #self.selectProject(None)
+        
+    def update(self):
+        self.variables = foxygen.Variables()
+
+        xrc.XRCCTRL(self, 'project_description_tc').SetValue(self.variables.description)
+        self.stree = foxygen.SourceTree(self.parent.root, self.variables)
+        self.stree.collect()
+        self.variables.fixDuplicates()
+
+        _vars = self.variables.getVariables(sort = True)
+
+        for kp,vp in self.pages.iteritems():
+
+            _groups = sorted(self.variables.getGroups())
+
+            for g in _groups + [None]:
+
+                _vars = self.variables.getVariables(levels = [kp], groups = [g], sort = True)
+                if len(_vars) < 1:
+                    continue
+
+                if g is None:
+                    vp.Append(wxpg.PropertyCategory('misc', 'misc-group'))
+                else:
+                    vp.Append(wxpg.PropertyCategory(g, g + '-group'))
+
+                for i,x in enumerate(_vars):
+                    try:
+                        if x.type == int:
+                            prop = vp.Append(
+                                    FBIntProperty(x.name,value=x.value,
+                                        variables=self.variables) )
+                        elif x.type == float:
+                            prop = vp.Append(
+                                    FBFloatProperty(x.name,value=x.value,
+                                        variables = self.variables) )
+                        elif x.type == "toggle":
+                            prop = vp.Append( wxpg.BoolProperty(x.name,value=x.value) )
+                            self.pg.SetPropertyAttribute(x.name, "UseCheckbox", True)
+                        elif x.type in ["select", "switch"]:
+                            prop = vp.Append( wxpg.EnumProperty(x.name, x.name,
+                                x.choices, value = x.value))
+                        else:
+                            prop = vp.Append( wxpg.StringProperty(x.name,value=str(x.value)) )
+                        if kp == 'read-only':
+                            prop.Enable(False)
+                    except Exception, e:
+                        logging.warning('%s: %s:%d: %s' % (x.name, x.fname,
+                            x.descrPos[0], str(e)))
 
     def clear(self):
         if self.initialized:
             self.pg.Clear()
 
     def onGenerate(self, evt):
-        for kp, vp in self.pages.iteritems():
-            d = vp.GetPropertyValues(inc_attributes=False)
-            for k,v in d.iteritems():
-                print k,v
-                try:
-                    self.variables[k].setValue(v)
-                except Exception, e:
-                    print str(e)
+        d = self.pg.GetPropertyValues(inc_attributes=False)
+        self.variables.setValuesFromDict(d)
+        self.stree.generate()
 
+    def propagate(self):
+        xrc.XRCCTRL(self, 'project_description_tc').SetValue(self.variables.description)
+        _vars = self.variables.getVariables()
+        for v in _vars:
+            if v.type in ['select', 'switch']:
+                _value = v.choices[v.value]
+            else:
+                _value = v.value
+            self.pg.SetPropertyValue(v.name, v.value)
+
+    def retrieve(self):
+        _vars = self.variables.getVariables()
+        for v in _vars:
+            _val = self.pg.GetPropertyValue(v.name)
+            if v.type in ['select', 'switch']:
+                _value = _val
+            else:
+                _value = _val
+            self.variables[v.name] = _value
+
+    def onReset(self, evt):
+        self.retrieve()
+        self.stree.resetAll()
+        self.propagate()
+
+    def onLoad(self, evt):
+        openFileDialog = wx.FileDialog(self, "Open configuration file", "", "", "", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        if openFileDialog.ShowModal() == wx.ID_CANCEL:
+            return
+        _path = openFileDialog.GetPath()
+        self.variables.loadJson(_path)
+        self.propagate()
+
+    def onSave(self, evt):
+        d = self.pg.GetPropertyValues(inc_attributes=False)
+        self.variables.setValuesFromDict(d)
+        self.variables.description = xrc.XRCCTRL(self, 'project_description_tc').GetValue()
+        openFileDialog = wx.FileDialog(self, "Save configuration file", "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if openFileDialog.ShowModal() == wx.ID_CANCEL:
+            return
+        _path = openFileDialog.GetPath()
+        self.variables.dumpJson(_path)
 
     def onSelected(self, evt):
         _property = evt.GetProperty()
@@ -134,34 +283,11 @@ class FBConfigurePanel(wx.Panel):
             try:
                 _d = {}
                 _var = self.variables[label]
-                _d['name'] = _var.name
-                _d['underline'] = '=' * len(_var.name)
-                _d['description'] = _var.description
-                _d['type'] = _var.type
-                _h = '''\
-%(name)s
-%(underline)s
-
-%(description)s
-
-:type: %(type)s
-'''% _d
-                if not _var.unit is None:
-                    _h += ':unit: ' +  _var.unit + '\n'
-                if not _var.valid is None:
-                    _h += ':valid: ' +  _var.valid + '\n'
-                if _var.type in ['select']:
-                    _h += ':choices: ' + ", ".join(_var.choices) + '\n'
-                _h += ':file: ' +  os.path.abspath(_var.fname) + ':%d\n' % _var.descrPos[0]
-                _h += '\n'
-                print _h
-
+                _h = _var.toReST()
                 _helptxt = publish_parts(_h, writer_name='html')['html_body']
             except Exception, e:
-                print str(e)
+                logging.warning(str(e), exc_info = 1)
                 _helptxt = '<html><body>no help available</body><html>'
-
-
             xrc.XRCCTRL(self, 'help_txt').SetPage(_helptxt)
 
     def collect(self):
@@ -245,7 +371,6 @@ class DemoTaskBarIcon(wx.TaskBarIcon):
  
         # Set the image
         _icon = wx.Icon(_getpath('xrc', 'foxbms100px.png'))
-        print _icon.IsOk()
         self.SetIcon(_icon)
 
 
@@ -297,7 +422,6 @@ class TaskBarIcon(wx.TaskBarIcon):
 
     def set_icon(self, path):
         icon = wx.IconFromBitmap(wx.Bitmap(path))
-        print icon, dir(icon), icon.GetHeight(), icon.GetWidth()
         self.SetIcon(icon, TRAY_TOOLTIP)
 
     def on_left_down(self, event):
