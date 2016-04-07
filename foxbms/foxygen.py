@@ -178,6 +178,8 @@ class Variable(object):
         self.code += ["%(" + str(_lines) + ")s"]
         if self.type in ['select', 'switch']: 
             if self.type == 'select':
+                if _match.group(2) in [None, ''] or _match.group(2) == '':
+                    raise RuntimeError('Macro definition expected for type select, did you want to use switch?')
                 self.choices += [_match.group(2).strip()]
             else:
                 self.choices += [_match.group(1).strip()]
