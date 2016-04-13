@@ -26,6 +26,8 @@ import logging
 import webbrowser
 
 from foxbmsflashtool import inari
+from Queue import Queue, Empty
+from threading import Thread
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -41,9 +43,19 @@ class CustomConsoleHandler(logging.StreamHandler):
         msg = self.format(record)
         self.textctrl.WriteText(msg + "\n")
         self.flush()
-
+        
+        
+        
+        
+def enqueue_output(out, queue):
+    for line in iter(out.readline, b''):
+         queue.put(line)
+    out.close()
 
 class RunThread(threading.Thread):
+
+
+
 
     def __init__(self, parent, cmd, fulloutput = True, wd = '.'):
         self.parent = parent
@@ -65,7 +77,13 @@ class RunThread(threading.Thread):
     def runFull(self):
         wx.CallAfter(self.parent.enableWidgets, False)
         p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-
+        if sys.platform.startswith('win'):
+            stdout_q = Queue()
+            stdout_t = Thread(target=enqueue_output, args=(p.stdout, stdout_q))
+            stdout_t.start()
+            stderr_q = Queue()
+            stderr_t = Thread(target=enqueue_output, args=(p.stderr, stderr_q))
+            stderr_t.start()
         while True:
 
             if self.canceling:
@@ -73,24 +91,41 @@ class RunThread(threading.Thread):
                 p.stderr.close()
                 break
 
-            reads = [p.stdout.fileno(), p.stderr.fileno()]
-            ret = select.select(reads, [], [])
+            if sys.platform.startswith('win'):
 
-            for fd in ret[0]:
+                    
+                    try:  line = stdout_q.get_nowait() # or q.get(timeout=.1)
+                    except Empty:
+                        pass
+                    else:
+                        wx.CallAfter(self.parent.writeLog, line)
+                    try:  line = stderr_q.get_nowait() # or q.get(timeout=.1)
+                    except Empty:
+                        pass
+                    else:
+                        wx.CallAfter(self.parent.writeLog, line)
 
-                if fd == p.stdout.fileno():
-                    read = p.stdout.readline()
-                    wx.CallAfter(self.parent.writeLog, read)
+            else:
+                reads = [p.stdout.fileno(), p.stderr.fileno()]
+                ret = select.select(reads, [], [])
 
-                if fd == p.stderr.fileno():
-                    read = p.stderr.readline()
-                    wx.CallAfter(self.parent.writeLog, read)
+                for fd in ret[0]:
+
+                    if fd == p.stdout.fileno():
+                        read = p.stdout.readline()
+                        wx.CallAfter(self.parent.writeLog, read)
+
+                    if fd == p.stderr.fileno():
+                        read = p.stderr.readline()
+                        wx.CallAfter(self.parent.writeLog, read)
 
             if p.poll() != None:
                 break
 
         wx.CallAfter(self.parent.writeLog, '__all_done__')
         wx.CallAfter(self.parent.enableWidgets, True)
+        stdout_t.join()
+        stderr_t.join()
 
     def runSilent(self):
         wx.CallAfter(self.parent.enableWidgets, False)
@@ -396,7 +431,8 @@ class FBFrontDeskFrame(wx.Frame):
 
 
     def detectWaf(self, path):
-        _wafs = glob.glob(os.path.join(path, 'tools/waf-*'))
+        _wafs = [w for w in glob.glob(os.path.join(path, 'tools/waf-*')) if os.path.isfile(w)]
+        logging.debug('wafs found: %s' % _wafs)
         self._waf = _wafs[-1]
 
     def onOpenDocumentation(self, evt):
