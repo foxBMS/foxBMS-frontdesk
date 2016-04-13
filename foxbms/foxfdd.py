@@ -221,7 +221,7 @@ class FBFrontDeskFrame(wx.Frame):
         self.nb.InsertPage(1, self.pages['config'], 'Configuration')
 
         self.pages['flash'] = inari.FBInariPanel(self.nb)
-        self.nb.AddPage(self.pages['flash'], 'Flash ROM')
+        self.nb.AddPage(self.pages['flash'], 'Flash foxBMS')
 
         '''
         for k in ['config', 'build', 'flash']:
@@ -406,7 +406,11 @@ class FBFrontDeskFrame(wx.Frame):
             wx.CallAfter(self.pages['config'].collect)
             self.status['configured'] = True
             return
-
+            
+        if self.status['configured']:
+           xrc.XRCCTRL(self, 'build_b').Enable(True)
+           return
+           
         if _new > self.pagekeys.index('build') and not self.status['built']:
             evt.Veto()
             return
