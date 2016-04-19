@@ -175,6 +175,14 @@ class FBConfigurePanel(wx.Panel):
         #self.selectProject(None)
         
     def update(self):
+
+        # this is some dummy code to initialize the writer
+        try:
+            _helptxt = publish_parts('dummy', writer_name='html')['html_body']
+        except Exception, e:
+            pass
+
+
         self.variables = foxygen.Variables()
 
         xrc.XRCCTRL(self, 'project_description_tc').SetValue(self.variables.description)

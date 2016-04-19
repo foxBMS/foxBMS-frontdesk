@@ -178,8 +178,6 @@ class Variable(object):
         self.code += ["%(" + str(_lines) + ")s"]
         if self.type in ['select', 'switch']: 
             if self.type == 'select':
-                if _match.group(2) in [None, ''] or _match.group(2) == '':
-                    raise RuntimeError('Macro definition expected for type select, did you want to use switch?')
                 self.choices += [_match.group(2).strip()]
             else:
                 self.choices += [_match.group(1).strip()]
@@ -263,7 +261,13 @@ class Variable(object):
             _h += ':default: ' +  repr(_var.default) + '\n'
         if _var.type in ['select', 'switch']:
             _h += ':choices: ' + ", ".join(_var.choices) + '\n'
-        _h += ':file: ' +  os.path.abspath(_var.fname) + ':%d\n' % _var.descrPos[0]
+        if sys.platform.startswith('win'):
+            _path = '%r' % unicode(os.path.abspath(_var.fname))
+            print _path
+            _path = _path[2:-1]
+        else:
+            _path = os.path.abspath(_var.fname)
+        _h += ':file: ' + _path  + ':%d\n' % _var.descrPos[0]
         _h += '\n'
         return _h
 

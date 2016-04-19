@@ -124,8 +124,10 @@ class RunThread(threading.Thread):
 
         wx.CallAfter(self.parent.writeLog, '__all_done__')
         wx.CallAfter(self.parent.enableWidgets, True)
-        stdout_t.join()
-        stderr_t.join()
+
+        if sys.platform.startswith('win'):
+            stdout_t.join()
+            stderr_t.join()
 
     def runSilent(self):
         wx.CallAfter(self.parent.enableWidgets, False)
@@ -134,7 +136,7 @@ class RunThread(threading.Thread):
         while True:
 
             if self.canceling:
-                p.stder.close()
+                p.stderr.close()
                 break
 
             r = p.stderr.readline()
@@ -186,11 +188,20 @@ class FBFrontDeskFrame(wx.Frame):
         self._resources.LoadOnFrame(pre, parent, "frontdesk_mframe")
         self.PostCreate(pre)
 
+        self.SetIcon(wx.Icon(_getpath('xrc', 'foxbms_icon_round.png'), wx.BITMAP_TYPE_PNG))
+
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+
+        self.tbicon = DemoTaskBarIcon(self)
+
+        xrc.XRCCTRL(self, 'remove_b').Enable(False)
 
         xrc.XRCCTRL(self, 'workspace_dp').SetPath(self.rcfile.get('workspace'))
         xrc.XRCCTRL(self, 'add_archive_b').Bind(wx.EVT_BUTTON, self.onAddArchive)
         xrc.XRCCTRL(self, 'add_dir_b').Bind(wx.EVT_BUTTON, self.onAddDir)
+        xrc.XRCCTRL(self, 'remove_b').Bind(wx.EVT_BUTTON, self.onRemove)
         xrc.XRCCTRL(self, 'projects_lb').Bind(wx.EVT_LIST_ITEM_SELECTED, self.onPLSel)
+        xrc.XRCCTRL(self, 'projects_lb').Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onPLSel)
 
         self.menu = self._resources.LoadMenuBar("main_menu")
         self.SetMenuBar(self.menu)
@@ -201,10 +212,17 @@ class FBFrontDeskFrame(wx.Frame):
                 id=xrc.XRCID("documentation_mi"))
         self.Bind(wx.EVT_MENU, self.onOpenReference,
                 id=xrc.XRCID("reference_mi"))
+        self.Bind(wx.EVT_MENU, self.onAbout,
+                id=wx.ID_ABOUT)
 
 
         self.nb = xrc.XRCCTRL(self, 'main_nb')
         self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onPageChanging)
+
+        # hack to infer old nb page on page changing
+        if sys.platform.startswith('win'):
+            self._last_pos = None
+            self.nb.Bind(wx.EVT_LEFT_DOWN, self.onNBClicked) 
 
         self.genProjectList(True)
 
@@ -241,8 +259,18 @@ class FBFrontDeskFrame(wx.Frame):
         #self.detectWaf(self.path)
         #self.selectProject(self.path)
 
+    def onNBClicked(self, evt):
+        self._last_pos = evt.GetPosition()
+        evt.Skip()
+
     def onClose(self, evt):
-        self.Close()
+        try:
+            # stop usb watch in inari
+            self.pages['flash'].stopUSBChecker()
+        except:
+            pass
+        evt.Skip()
+
 
     def installLogger(self):
         _rootlogger = logging.getLogger()
@@ -312,8 +340,10 @@ class FBFrontDeskFrame(wx.Frame):
                  _lb.SetStringItem(index, 2, 'no')
              #self.list.SetStringItem(index, 2, i[2]) 
 
-        if not init and _sel > -1:
+        if not init and _sel > -1 and _sel < _lb.GetItemCount():
             _lb.Select(_sel)
+        else:
+            self.onPLSel()
 
     def onAddArchive(self, evt):
         # update workspace dir
@@ -327,7 +357,33 @@ class FBFrontDeskFrame(wx.Frame):
         if d.ShowModal() == wx.ID_OK:
             self.genProjectList()
 
-    def onPLSel(self, evt):
+
+    def onRemove(self, evt):
+        dlg = RemoveDialog(self)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.rcfile.removeProject(self.name)
+            if dlg.isErase():
+                shutil.rmtree(self.path)
+            self.name, self.path = None, None
+            self.genProjectList()
+
+
+    def onPLSel(self, evt = None):
+
+        if evt is None or evt.EventType == wx.EVT_LIST_ITEM_DESELECTED.typeId:
+            _idx = -1
+            self.name, self.path, = None, None
+            self.SetTitle('foxBMS Front Desk')
+            xrc.XRCCTRL(self, 'remove_b').Enable(False)
+            self.status['configured'] = False
+            self.status['initialized'] = False
+
+            xrc.XRCCTRL(self, 'initialize_b').SetLabel('Initialize project')
+            self.menu.FindItemById(xrc.XRCID('reference_mi')).Enable(False)
+            self.menu.FindItemById(xrc.XRCID('documentation_mi')).Enable(False)
+
+            xrc.XRCCTRL(self, 'initialize_b').Enable(False)
+            return
 
         _idx = evt.GetIndex()
         _name = xrc.XRCCTRL(self, 'projects_lb').GetItemText(_idx, 0)
@@ -336,6 +392,7 @@ class FBFrontDeskFrame(wx.Frame):
 
         self.name, self.path, = _name, _path 
         self.SetTitle('foxBMS Front Desk | %s' % _name)
+        xrc.XRCCTRL(self, 'remove_b').Enable(True)
 
 
         if _idx != self.oldProjectSel:
@@ -374,18 +431,38 @@ class FBFrontDeskFrame(wx.Frame):
 
     def onBuild(self, evt):
         self.detectWaf(self.path)
-        print self.path, self._waf
+        logging.debug('path: %s, waf: %s' % (self.path, self._waf))
         self._tasks = 1
         self.runWaf('build', wd = self.path)
         self.status['built'] = True
 
     def onPageChanging(self, evt):
         _old = self.nb.GetSelection() 
-        _new = evt.GetSelection()
 
-        print self.pagekeys[_old], self.pagekeys[_new], _old, _new, self.pagekeys.index('build')
+        if sys.platform.startswith('win'):
+            _nb = evt.GetEventObject()
+            _nbitem, _flags = _nb.HitTest(self._last_pos)
+            _new = _nbitem
+        else:
+            _new = evt.GetSelection()
+
+
+        '''
+        sub OnNotebookPageChanging {
+        my( $self, $event ) = @_;
+        my( $oldSelection ) = $event->GetOldSelection;
+        my $notebook = $event->GetEventObject;
+        my ($nbitem, $flags ) = $notebook->HitTest($notebook->{last_pos});
+        if($nbitem != -1) {
+            Wx::LogMessage(qq(New Selection Index is $nbitem));
+            }
+        '''
+
+
+        logging.debug('%s, %s, %s, %s, %s' % (self.pagekeys[_old],
+            self.pagekeys[_new], _old, _new, self.pagekeys.index('build')))
         for k,v in self.status.iteritems():
-            print k,v
+            logging.debug('%s %s' % (k,v))
 
         # page change logic
         # you can always go back
@@ -408,6 +485,7 @@ class FBFrontDeskFrame(wx.Frame):
             return
             
         if self.status['configured']:
+           logging.debug('build button enabled')
            xrc.XRCCTRL(self, 'build_b').Enable(True)
            return
            
@@ -508,6 +586,28 @@ class FBFrontDeskFrame(wx.Frame):
 
         self.genProjectList()
 
+    def onAbout(self, evt):
+        info = wx.AboutDialogInfo()
+        info.SetIcon(wx.Icon(_getpath('xrc', 'foxbms250px.png'), wx.BITMAP_TYPE_PNG))
+        info.SetName('foxBMS FrontDesk')
+        info.SetVersion('0.1')
+        info.SetDescription('The foxBMS FrontDesk is an IDE for the free.open.flexible battery management system foxBMS.')
+        info.SetCopyright('(c) 2010--2016 Fraunhofer Gesellschaft zur Foerderung der angewandten Forschung e.V.')
+        info.SetWebSite('http://www.foxbms.org')
+        '''
+        with open(_getpath('xrc', 'LICENSE'), 'r') as _f:
+            license = _f.read()
+        '''
+        info.SetLicence('3-clause BSD')
+        info.AddDeveloper('Fraunhofer IISB')
+        wx.AboutBox(info)
+
+        ''' 
+        info.AddDocWriter('Jan Bodnar')
+        info.AddArtist('The Tango crew')
+        info.AddTranslator('Jan Bodnar')
+        '''
+
 
 
 class AddDirDialog(wx.Dialog):
@@ -571,11 +671,19 @@ class AddArchiveDialog(wx.Dialog):
 
 
     def getRootOfArchive(self, apath):
+        _root = None
         with tarfile.open(apath, 'r:*') as f:
             for tarinfo in f:
-                if tarinfo.isdir():
-                    return tarinfo.name.split(os.path.sep)[0]
-        raise RuntimeError('ill-organized archive')
+                _dir = tarinfo.name.split('/')
+                if len(_dir) < 2:
+                    if tarinfo.isdir():
+                        return _dir[0]
+                    raise RuntimeError('ill-organized archive')
+                if _root is None:
+                    _root = _dir[0]
+                elif _root.strip() != _dir[0].strip():
+                    raise RuntimeError('ill-organized archive')
+        return _root
 
 
     def extract(self):
@@ -583,7 +691,13 @@ class AddArchiveDialog(wx.Dialog):
         self.parent.rcfile.addProject(name)
 
         # getName of root in archive
-        _root = self.getRootOfArchive(apath)
+        try:
+            _root = self.getRootOfArchive(apath)
+        except Exception, e: 
+            dlg = wx.MessageDialog(self, str(e), 'Archive error', wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
         _curdir = os.path.abspath('.')
         if _root != name:
             _p = self.parent.rcfile.get('projects')[-1]
@@ -618,6 +732,83 @@ class AddArchiveDialog(wx.Dialog):
         _path = xrc.XRCCTRL(self, 'add_archive_fp').GetPath()
         return _name, _path
 
+class RemoveDialog(wx.Dialog):
+
+    def __init__(self, parent):
+        pre = wx.PreDialog()
+        self.parent = parent
+        parent._resources.LoadOnDialog(pre, parent, "remove_dlg")
+        self.PostCreate(pre)
+        self.GetSizer().Add(self.CreateButtonSizer(wx.OK | wx.CANCEL), 0, wx.ALL, 5)
+        self.FindWindowById(wx.ID_OK).SetLabel('Remove project')
+        self.Fit()
+
+    def isErase(self):
+        return xrc.XRCCTRL(self, 'remove_cb').GetValue()
+
+
+
+class DemoTaskBarIcon(wx.TaskBarIcon):
+    TBMENU_RESTORE = wx.NewId()
+    TBMENU_CLOSE   = wx.NewId()
+    TBMENU_CHANGE  = wx.NewId()
+    TBMENU_REMOVE  = wx.NewId()
+    
+    def __init__(self, frame):
+        wx.TaskBarIcon.__init__(self)
+        self.frame = frame
+
+        # Set the image
+        self.SetIcon(wx.Icon(_getpath('xrc', 'foxbms_icon_round.png'), wx.BITMAP_TYPE_PNG), 'foxBMS FrontDesk')
+        self.imgidx = 1
+        
+        # bind some events
+        self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarActivate,
+                id=self.TBMENU_RESTORE)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarClose,
+                id=self.TBMENU_CLOSE)
+
+
+    def CreatePopupMenu(self):
+        """
+        This method is called by the base class when it needs to popup
+        the menu for the default EVT_RIGHT_DOWN event.  Just create
+        the menu how you want it and return it from this function,
+        the base class takes care of the rest.
+        """
+        menu = wx.Menu()
+        menu.Append(self.TBMENU_RESTORE, "Restore wxPython Demo")
+        menu.Append(self.TBMENU_CLOSE,   "Close wxPython Demo")
+        return menu
+
+
+    def MakeIcon(self, img):
+        """
+        The various platforms have different requirements for the
+        icon size...
+        """
+        if "wxMSW" in wx.PlatformInfo:
+            img = img.Scale(16, 16)
+        elif "wxGTK" in wx.PlatformInfo:
+            img = img.Scale(22, 22)
+        # wxMac can be any size upto 128x128, so leave the source img
+        # alone....
+        icon = wx.IconFromBitmap(img.ConvertToBitmap() )
+        return icon
+    
+
+    def OnTaskBarActivate(self, evt):
+        if self.frame.IsIconized(): 
+            self.frame.Iconize(False)
+        if not self.frame.IsShown():
+            self.frame.Show(True)
+        self.frame.Raise()
+
+
+    def OnTaskBarClose(self, evt):
+        wx.CallAfter(self.frame.Close)
+
 
 class FBFrontDeskApp(wx.App):
 
@@ -633,8 +824,7 @@ class FBFrontDeskApp(wx.App):
         return True
 
     def OnExit(self):
-        pass
-        #wx.App.OnExit(self)
+        sys.exit(0)
 
 def main():
     app = FBFrontDeskApp(False)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resource class="wxStaticLine" version="2.3.0.1" xmlns="http://www.wxwindows.org/wxxrc">
+<resource class="wxFrame" version="2.3.0.1" xmlns="http://www.wxwindows.org/wxxrc">
   <object class="wxFrame" name="frontdesk_mframe">
     <object class="wxSplitterWindow">
       <object class="wxNotebook" name="main_nb">
@@ -16,7 +16,7 @@
                 <border>5</border>
               </object>
               <object class="sizeritem">
-                <object class="wxFilePickerCtrl" name="workspace_dp">
+                <object class="wxDirPickerCtrl" name="workspace_dp">
                   <message>Select workspace directory</message>
                 </object>
                 <option>0</option>
@@ -46,7 +46,7 @@
                       <label>Add from existing directory</label>
                     </object>
                     <option>0</option>
-                    <flag>wxRIGHT|wxTOP|wxBOTTOM</flag>
+                    <flag>wxTOP|wxBOTTOM</flag>
                     <border>5</border>
                   </object>
                   <object class="sizeritem">
@@ -68,6 +68,13 @@
                     <object class="wxButton" name="add_git_b">
                       <label>Add from git</label>
                       <hidden>1</hidden>
+                    </object>
+                    <flag>wxLEFT|wxTOP|wxBOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="remove_b">
+                      <label>Remove project</label>
                     </object>
                     <flag>wxLEFT|wxTOP|wxBOTTOM</flag>
                     <border>5</border>
@@ -110,14 +117,23 @@
                 <size>0,0</size>
               </object>
               <object class="sizeritem">
-                <option>0</option>
-                <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
-                <border>5</border>
-                <object class="wxButton" name="build_b">
-                  <label>Build ROM</label>
-                  <default>0</default>
+                <object class="wxBitmapButton" name="build_b">
+                  <bitmap>build.png</bitmap>
+                  <selected>build.png</selected>
+                  <focus>build.png</focus>
+                  <disabled>build.png</disabled>
+                  <hover>build.png</hover>
+                  <tooltip>build foxBMS</tooltip>
+                  <help>build foxBMS</help>
+                  <enabled>0</enabled>
+                  <style>wxBORDER_NONE|wxTRANSPARENT_WINDOW</style>
                 </object>
+                <option>0</option>
+                <flag>wxALL|wxALIGN_CENTRE</flag>
+                <border>0</border>
+                <minsize>65,65</minsize>
               </object>
+              
               <object class="spacer">
                 <option>1</option>
                 <flag>wxEXPAND</flag>
@@ -125,16 +141,15 @@
                 <size>0,0</size>
               </object>
             </object>
-            <enabled>0</enabled>
+            <enabled>1</enabled>
             <style>wxTAB_TRAVERSAL</style>
           </object>
-          <label>Build ROM</label>
+          <label>Build foxBMS</label>
         </object>
       </object>
       <object class="wxPanel">
         <object class="wxBoxSizer">
           <orient>wxVERTICAL</orient>
-            
           <object class="sizeritem">
             <option>0</option>
             <flag>wxALL|wxEXPAND</flag>
@@ -191,9 +206,10 @@
       <pos>1024,768</pos>
       <orientation>horizontal</orientation>
       <sashpos>500</sashpos>
+      <minsize>20</minsize>
     </object>
     <size>1024,768</size>
-    <title>foxBMS frontdesk</title>
+    <title>foxBMS FrontDesk</title>
     <centered>1</centered>
     <style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
   </object>
@@ -584,5 +600,29 @@
       </object>
       <label>Help</label>
     </object>
+  </object>
+  <object class="wxDialog" name="remove_dlg">
+    <object class="wxBoxSizer">
+      <object class="spacer">
+        <size>1,1</size>
+        <option>0</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxCheckBox" name="remove_cb">
+          <label>Erase from disk</label>
+        </object>
+        <option>0</option>
+        <flag>wxALL</flag>
+        <border>10</border>
+      </object>
+      <object class="spacer">
+        <size>1,1</size>
+        <option>0</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <orient>wxVERTICAL</orient>
+    </object>
+    <title>Project removal</title>
   </object>
 </resource>

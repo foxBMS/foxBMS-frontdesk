@@ -18,20 +18,14 @@ import webbrowser
 
 class RunThread(threading.Thread):
 
-    def __init__(self, parent, cmd, fulloutput = True):
+    def __init__(self, parent, cmd):
         self.parent = parent
         threading.Thread.__init__(self)
         self.canceling = False
         self.cmd = cmd
-        self.fulloutput = fulloutput
 
     def run(self):
-        if self.fulloutput:
-            self.runFull()
-        else:
-            self.runSilent()
 
-    def runFull(self):
         wx.CallAfter(self.parent.enableWidgets, False)
         p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
@@ -54,24 +48,6 @@ class RunThread(threading.Thread):
                 if fd == p.stderr.fileno():
                     read = p.stderr.readline()
                     wx.CallAfter(self.parent.writeLog, read)
-
-            if p.poll() != None:
-                break
-
-        wx.CallAfter(self.parent.enableWidgets, True)
-
-    def runSilent(self):
-        wx.CallAfter(self.parent.enableWidgets, False)
-        p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE)
-
-        while True:
-
-            if self.canceling:
-                p.stder.close()
-                break
-
-            r = p.stderr.readline()
-            wx.CallAfter(self.parent.writeLog, r)
 
             if p.poll() != None:
                 break
@@ -106,7 +82,6 @@ class FBFrontDeskPanel(wx.Panel):
         
         xrc.XRCCTRL(self, 'commands_box').InsertItems(self._COMMANDS, 0)
         xrc.XRCCTRL(self, 'run_b').Bind(wx.EVT_BUTTON, self.onRun)
-        xrc.XRCCTRL(self, 'clear_b').Bind(wx.EVT_BUTTON, self.onClear)
         xrc.XRCCTRL(self, 'details_tc').SetMinSize((-1, 150))
         xrc.XRCCTRL(self, 'commands_box').SetMinSize((200, 200))
         xrc.XRCCTRL(self, 'progress').SetSize((-1, 3))
@@ -115,7 +90,6 @@ class FBFrontDeskPanel(wx.Panel):
         self.selectProject(None)
 
     def onRun(self, evt):
-        _fo = True
         _sel = xrc.XRCCTRL(self, 'commands_box').GetSelections()
         if len(_sel) < 1: 
             return
@@ -123,17 +97,11 @@ class FBFrontDeskPanel(wx.Panel):
         for i in _sel:
             cmd = xrc.XRCCTRL(self, 'commands_box').GetString(i)
             if cmd == 'build documentation':
-                _fo = True
                 _CMD += ['doxygen', 'sphinx']
             else:
-                _fo = True
                 _CMD += [cmd]
-        rt = RunThread(self, _CMD, fulloutput = _fo)
+        rt = RunThread(self, _CMD)
         rt.start()
-
-    def onClear(self, evt):
-        xrc.XRCCTRL(self, 'details_tc').Clear()
-
 
     def enableWidgets(self, enable = True):
         xrc.XRCCTRL(self, 'run_b').Enable(enable)
@@ -187,7 +155,7 @@ class DemoTaskBarIcon(wx.TaskBarIcon):
 
 class FBFrontDeskFrame(wx.Frame):
 
-    __COPYRIGHT = '(c) 2015, 2016 Fraunhofer IISB'
+    __COPYRIGHT = '(c) 2015, Fraunhofer IISB'
 
     def PreCreate(self, pre):
         pass

@@ -39,6 +39,13 @@ class FoxBMSConfig(object):
             projects[-1]['repo'] = repo
         self.set('projects', projects)
 
+    def removeProject(self, name):
+        projects = self.entries.get('projects', [])
+        for i,p in enumerate(projects):
+            if p['name'] == name:
+                del projects[i]
+        self.set('projects', projects)
+
     def cleanProjects(self):
         projects = self.entries.get('projects', [])
         _projects = []
