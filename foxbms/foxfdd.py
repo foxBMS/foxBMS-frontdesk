@@ -75,8 +75,11 @@ class RunThread(threading.Thread):
         os.chdir(_curdir)
 
     def runFull(self):
+        env = os.environ.copy()
+        env['PATH'] = os.path.join(sys.prefix, 'bin') + os.path.pathsep + env['PATH']
         wx.CallAfter(self.parent.enableWidgets, False)
-        p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE, env=env)
         if sys.platform.startswith('win'):
             stdout_q = Queue()
             stdout_t = Thread(target=enqueue_output, args=(p.stdout, stdout_q))
@@ -124,14 +127,16 @@ class RunThread(threading.Thread):
 
         wx.CallAfter(self.parent.writeLog, '__all_done__')
         wx.CallAfter(self.parent.enableWidgets, True)
-
         if sys.platform.startswith('win'):
             stdout_t.join()
             stderr_t.join()
 
     def runSilent(self):
+        env = os.environ.copy()
+        env['PATH'] = os.path.join(sys.prefix, 'bin') + os.path.pathsep + env['PATH']
         wx.CallAfter(self.parent.enableWidgets, False)
-        p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE)
+        p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, env=env)
+        wx.CallAfter(self.parent.enableWidgets, False)
 
         while True:
 
@@ -189,11 +194,8 @@ class FBFrontDeskFrame(wx.Frame):
         self.PostCreate(pre)
 
         self.SetIcon(wx.Icon(_getpath('xrc', 'foxbms_icon_round.png'), wx.BITMAP_TYPE_PNG))
-
         self.Bind(wx.EVT_CLOSE, self.onClose)
-
         self.tbicon = DemoTaskBarIcon(self)
-
         xrc.XRCCTRL(self, 'remove_b').Enable(False)
 
         xrc.XRCCTRL(self, 'workspace_dp').SetPath(self.rcfile.get('workspace'))
