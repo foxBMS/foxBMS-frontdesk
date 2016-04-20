@@ -1,6 +1,6 @@
 package:
     name: foxbms
-    version: "0.1"
+    version: "0.3"
 
 source:
     path: ..
@@ -12,6 +12,7 @@ build:
         - foxconfig = foxbms.configure:main
         - foxbms = foxbms.foxfdd:main
         - foxygen = foxbms.foxygen:main
+        - fbterminal = foxbms.fbterminal:main
 
 requirements:
     build:
