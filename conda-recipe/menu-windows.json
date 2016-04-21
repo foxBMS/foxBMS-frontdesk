@@ -8,8 +8,7 @@
                 "name": "foxBMS FrontDesk",
                 "workdir": "${PREFIX}",
                 "icon": "${MENU_DIR}/app.ico",
-                "desktop": true,  
-                "quicklaunch": true  
+                "desktop": true
             },
             {
                 "script": "${PYTHON_SCRIPTS}/fbterminal.exe",
@@ -17,8 +16,7 @@
                 "name": "foxBMS Terminal",
                 "workdir": "${PREFIX}",
                 "icon": "${MENU_DIR}/app.ico",
-                "desktop": true,  
-                "quicklaunch": true  
+                "desktop": true
             }
         ]
 }
