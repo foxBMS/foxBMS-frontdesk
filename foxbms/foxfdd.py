@@ -138,21 +138,36 @@ class RunThread(threading.Thread):
         p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, env=env)
         wx.CallAfter(self.parent.enableWidgets, False)
 
+        
+        if sys.platform.startswith('win'):
+            stderr_q = Queue()
+            stderr_t = Thread(target=enqueue_output, args=(p.stderr, stderr_q))
+            stderr_t.start()
+            
         while True:
 
             if self.canceling:
                 p.stderr.close()
                 break
+                
+            if sys.platform.startswith('win'):
+                    try:  line = stderr_q.get_nowait() # or q.get(timeout=.1)
+                    except Empty:
+                        pass
+                    else:
+                        wx.CallAfter(self.parent.writeLog, line)
 
-            r = p.stderr.readline()
-            wx.CallAfter(self.parent.writeLog, r)
+            else:
+                r = p.stderr.readline()
+                wx.CallAfter(self.parent.writeLog, r)
 
             if p.poll() != None:
                 break
 
         wx.CallAfter(self.parent.writeLog, '__all_done__')
         wx.CallAfter(self.parent.enableWidgets, True)
-
+        if sys.platform.startswith('win'):
+            stderr_t.join()
 
 def _getpath(*args):
     path = [os.path.dirname(__file__)] + list(args)
