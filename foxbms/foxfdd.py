@@ -76,7 +76,7 @@ class RunThread(threading.Thread):
 
     def runFull(self):
         env = os.environ.copy()
-        env['PATH'] = os.path.join(sys.prefix, 'bin') + os.path.pathsep + os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + env['PATH']
+        env['PATH'] = os.path.join(sys.prefix) + os.path.pathsep + os.path.join(sys.prefix, 'bin') + os.path.pathsep + os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + env['PATH']
         wx.CallAfter(self.parent.enableWidgets, False)
         p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE, env=env)
@@ -133,7 +133,7 @@ class RunThread(threading.Thread):
 
     def runSilent(self):
         env = os.environ.copy()
-        env['PATH'] = os.path.join(sys.prefix, 'bin') + os.path.pathsep + os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + env['PATH']
+        env['PATH'] = os.path.join(sys.prefix) + os.path.pathsep + os.path.join(sys.prefix, 'bin') + os.path.pathsep + os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + env['PATH']
         wx.CallAfter(self.parent.enableWidgets, False)
         p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, env=env)
         wx.CallAfter(self.parent.enableWidgets, False)
