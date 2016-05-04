@@ -1,6 +1,6 @@
 package:
     name: foxbms
-    version: "0.3"
+    version: 0.5
 
 source:
     path: ..
@@ -10,9 +10,9 @@ build:
     osx_is_app: True
     entry_points:
         - foxconfig = foxbms.configure:main
-        - foxbms = foxbms.foxfdd:main
         - foxygen = foxbms.foxygen:main
         - fbterminal = foxbms.fbterminal:main
+        - foxbms = foxbms.foxfdd:main #[not win]
 
 requirements:
     build:
