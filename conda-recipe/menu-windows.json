@@ -3,7 +3,7 @@
     "menu_items":
         [
 			{
-                "script": "${PYTHON_SCRIPTS}/foxbms.exe",
+                "system": "${PYTHON_SCRIPTS}/foxbms.exe",
                 "scriptarguments": [],
                 "name": "foxBMS FrontDesk",
                 "workdir": "${PREFIX}",
@@ -11,7 +11,7 @@
                 "desktop": true
             },
             {
-                "script": "${PYTHON_SCRIPTS}/fbterminal.exe",
+                "system": "${PYTHON_SCRIPTS}/fbterminal.exe",
                 "scriptarguments": [],
                 "name": "foxBMS Terminal",
                 "workdir": "${PREFIX}",
