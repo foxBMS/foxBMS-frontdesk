@@ -1,10 +1,11 @@
 """
 :since:     Tue Jan 19 11:13:52 CET 2016
 :author:    Tim Fuehner <tim.fuehner@iisb.fraunhofer.de>
+:author:    Christian Freund <christian.freund@iisb.fraunhofer.de>
 $Id$
 """
 
-
+import foxbms
 
 import wx
 from wx import xrc
@@ -54,9 +55,6 @@ def enqueue_output(out, queue):
 
 class RunThread(threading.Thread):
 
-
-
-
     def __init__(self, parent, cmd, fulloutput = True, wd = '.'):
         self.parent = parent
         threading.Thread.__init__(self)
@@ -76,7 +74,13 @@ class RunThread(threading.Thread):
 
     def runFull(self):
         env = os.environ.copy()
-        env['PATH'] = os.path.join(sys.prefix) + os.path.pathsep + os.path.join(sys.prefix, 'bin') + os.path.pathsep + os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + env['PATH']
+
+        env['PATH'] = os.path.join(sys.prefix) + os.path.pathsep + \
+                os.path.join(sys.prefix, 'bin') + os.path.pathsep + \
+                os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + \
+                os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + \
+                env['PATH']
+        
         wx.CallAfter(self.parent.enableWidgets, False)
         p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE, env=env)
@@ -132,12 +136,17 @@ class RunThread(threading.Thread):
             stderr_t.join()
 
     def runSilent(self):
+
         env = os.environ.copy()
-        env['PATH'] = os.path.join(sys.prefix) + os.path.pathsep + os.path.join(sys.prefix, 'bin') + os.path.pathsep + os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + env['PATH']
+        env['PATH'] = os.path.join(sys.prefix) + os.path.pathsep + \
+                os.path.join(sys.prefix, 'bin') + os.path.pathsep + \
+                os.path.join(sys.prefix, 'Scripts') + os.path.pathsep + \
+                os.path.join(sys.prefix, 'Library', 'bin') + os.path.pathsep + \
+                env['PATH']
+
         wx.CallAfter(self.parent.enableWidgets, False)
         p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, env=env)
         wx.CallAfter(self.parent.enableWidgets, False)
-
         
         if sys.platform.startswith('win'):
             stderr_q = Queue()
@@ -207,10 +216,13 @@ class FBFrontDeskFrame(wx.Frame):
         pre = wx.PreFrame()
         self._resources.LoadOnFrame(pre, parent, "frontdesk_mframe")
         self.PostCreate(pre)
+        if sys.platform.startswith('win'):
+            self.SetIcon(wx.Icon(_getpath('xrc', 'fbicon.ico'), wx.BITMAP_TYPE_ICO))
+        else:
+            self.SetIcon(wx.Icon(_getpath('xrc', 'foxbms-icon-512.png'), wx.BITMAP_TYPE_PNG))
 
-        self.SetIcon(wx.Icon(_getpath('xrc', 'foxbms_icon_round.png'), wx.BITMAP_TYPE_PNG))
         self.Bind(wx.EVT_CLOSE, self.onClose)
-        self.tbicon = DemoTaskBarIcon(self)
+        #self.tbicon = DemoTaskBarIcon(self)
         xrc.XRCCTRL(self, 'remove_b').Enable(False)
 
         xrc.XRCCTRL(self, 'workspace_dp').SetPath(self.rcfile.get('workspace'))
@@ -231,7 +243,8 @@ class FBFrontDeskFrame(wx.Frame):
                 id=xrc.XRCID("reference_mi"))
         self.Bind(wx.EVT_MENU, self.onAbout,
                 id=wx.ID_ABOUT)
-
+        self.Bind(wx.EVT_MENU, self.onExit,
+                id=wx.ID_EXIT)
 
         self.nb = xrc.XRCCTRL(self, 'main_nb')
         self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onPageChanging)
@@ -279,6 +292,9 @@ class FBFrontDeskFrame(wx.Frame):
     def onNBClicked(self, evt):
         self._last_pos = evt.GetPosition()
         evt.Skip()
+
+    def onExit(self, evt):
+        self.Close()
 
     def onClose(self, evt):
         try:
@@ -607,7 +623,7 @@ class FBFrontDeskFrame(wx.Frame):
         info = wx.AboutDialogInfo()
         info.SetIcon(wx.Icon(_getpath('xrc', 'foxbms250px.png'), wx.BITMAP_TYPE_PNG))
         info.SetName('foxBMS FrontDesk')
-        info.SetVersion('0.1')
+        info.SetVersion(foxbms.__version__)
         info.SetDescription('The foxBMS FrontDesk is an IDE for the free.open.flexible battery management system foxBMS.')
         info.SetCopyright('(c) 2010--2016 Fraunhofer Gesellschaft zur Foerderung der angewandten Forschung e.V.')
         info.SetWebSite('http://www.foxbms.org')
@@ -616,7 +632,7 @@ class FBFrontDeskFrame(wx.Frame):
             license = _f.read()
         '''
         info.SetLicence('3-clause BSD')
-        info.AddDeveloper('Fraunhofer IISB')
+        info.AddDeveloper('The foxBMS team at the Fraunhofer IISB')
         wx.AboutBox(info)
 
         ''' 
@@ -776,7 +792,9 @@ class DemoTaskBarIcon(wx.TaskBarIcon):
         self.frame = frame
 
         # Set the image
-        self.SetIcon(wx.Icon(_getpath('xrc', 'foxbms_icon_round.png'), wx.BITMAP_TYPE_PNG), 'foxBMS FrontDesk')
+        self.SetIcon(wx.Icon(_getpath('xrc', 'foxbms_icon_round.png'), 
+            wx.BITMAP_TYPE_PNG), 
+            'foxBMS FrontDesk')
         self.imgidx = 1
         
         # bind some events
@@ -829,22 +847,21 @@ class DemoTaskBarIcon(wx.TaskBarIcon):
 
 class FBFrontDeskApp(wx.App):
 
-    def OnInit(self):
-        _path = None
-        try:
-            _path = sys.argv[1]
-        except:
-            pass
-        frame = FBFrontDeskFrame(None, path = _path)
-        self.SetTopWindow(frame)
-        frame.Show()
-        return True
-
-    def OnExit(self):
-        sys.exit(0)
+    def OnExit_(self):
+        pass
 
 def main():
     app = FBFrontDeskApp(False)
+
+    _path = None
+    try:
+        _path = sys.argv[1]
+    except:
+        pass
+    frame = FBFrontDeskFrame(None, path = _path)
+    app.SetTopWindow(frame)
+    frame.Show()
+
     app.MainLoop()
 
 
