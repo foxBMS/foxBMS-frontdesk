@@ -42,11 +42,19 @@
               <object class="sizeritem">
                 <object class="wxBoxSizer">
                   <object class="sizeritem">
+                    <object class="wxButton" name="add_git_b">
+                      <label>Add from git</label>
+                    </object>
+                    <option>0</option>
+                    <flag>wxTOP|wxBOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                  <object class="sizeritem">
                     <object class="wxButton" name="add_dir_b">
                       <label>Add from existing directory</label>
                     </object>
                     <option>0</option>
-                    <flag>wxTOP|wxBOTTOM</flag>
+                    <flag>wxLEFT|wxTOP|wxBOTTOM</flag>
                     <border>5</border>
                   </object>
                   <object class="sizeritem">
@@ -65,13 +73,14 @@
                     <border>5</border>
                   </object>
                   <object class="sizeritem">
-                    <object class="wxButton" name="add_git_b">
-                      <label>Add from git</label>
-                      <hidden>1</hidden>
+                    <object class="wxButton" name="update_git_b">
+                      <label>Update project from GIT</label>
                     </object>
+                    <option>0</option>
                     <flag>wxLEFT|wxTOP|wxBOTTOM</flag>
                     <border>5</border>
                   </object>
+                  
                   <object class="sizeritem">
                     <object class="wxButton" name="remove_b">
                       <label>Remove project</label>
@@ -133,7 +142,6 @@
                 <border>0</border>
                 <minsize>65,65</minsize>
               </object>
-              
               <object class="spacer">
                 <option>1</option>
                 <flag>wxEXPAND</flag>
@@ -493,7 +501,7 @@
           <border>5</border>
         </object>
         <object class="sizeritem">
-          <object class="wxTextCtrl" name="add_dir_dp"/>
+          <object class="wxTextCtrl" name="add_git_repo_tc"/>
           <option>0</option>
           <flag>wxALL|wxEXPAND</flag>
           <border>5</border>
@@ -522,7 +530,7 @@
           <border>5</border>
         </object>
         <object class="sizeritem">
-          <object class="wxStaticText" name="add_dir_error_txt">
+          <object class="wxStaticText" name="add_git_error_txt">
             <size>-1,35</size>
             <wrap>2</wrap>
             <fg>#D70015</fg>
