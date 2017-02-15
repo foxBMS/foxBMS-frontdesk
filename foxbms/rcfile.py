@@ -61,7 +61,9 @@ class FoxBMSConfig(object):
     fname = 'foxbms.rc'
 
     defaults = {
-            'workspace': os.path.expanduser(os.path.join('~', 'foxbms'))
+            'workspace': os.path.expanduser(os.path.join('~', 'foxbms')),
+            'projects': [],
+            'gitrepo': 'https://github.com/foxBMS/foxBMS-primary',
             }
 
     def __init__(self, fpath = None):
@@ -91,6 +93,19 @@ class FoxBMSConfig(object):
         if not repo is None:
             projects[-1]['repo'] = repo
         self.set('projects', projects)
+
+    def isGIT(self, name):
+        projects = self.entries.get('projects', [])
+        for i,p in enumerate(projects):
+            if p['name'] == name:
+                return 'repo' in projects[i]
+        return False
+
+    def getProject(self, name):
+        projects = self.entries.get('projects', [])
+        for i,p in enumerate(projects):
+            if p['name'] == name:
+                return projects[i]
 
     def removeProject(self, name):
         projects = self.entries.get('projects', [])
