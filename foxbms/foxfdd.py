@@ -272,11 +272,14 @@ class FBFrontDeskFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         #self.tbicon = DemoTaskBarIcon(self)
         xrc.XRCCTRL(self, 'remove_b').Enable(False)
+        xrc.XRCCTRL(self, 'update_git_b').Enable(False)
 
         xrc.XRCCTRL(self, 'workspace_dp').SetPath(self.rcfile.get('workspace'))
         xrc.XRCCTRL(self, 'add_archive_b').Bind(wx.EVT_BUTTON, self.onAddArchive)
         xrc.XRCCTRL(self, 'add_dir_b').Bind(wx.EVT_BUTTON, self.onAddDir)
+        xrc.XRCCTRL(self, 'add_git_b').Bind(wx.EVT_BUTTON, self.onAddGit)
         xrc.XRCCTRL(self, 'remove_b').Bind(wx.EVT_BUTTON, self.onRemove)
+        xrc.XRCCTRL(self, 'update_git_b').Bind(wx.EVT_BUTTON, self.onUpdate)
         xrc.XRCCTRL(self, 'projects_lb').Bind(wx.EVT_LIST_ITEM_SELECTED, self.onPLSel)
         xrc.XRCCTRL(self, 'projects_lb').Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onPLSel)
 
@@ -438,6 +441,18 @@ class FBFrontDeskFrame(wx.Frame):
         if d.ShowModal() == wx.ID_OK:
             self.genProjectList()
 
+    def onAddGit(self, evt):
+        # update workspace dir
+        self.rcfile.set('workspace', xrc.XRCCTRL(self, 'workspace_dp').GetPath())
+        if not os.path.exists(self.rcfile.get('workspace')):
+            try:
+                os.makedirs(self.rcfile.get('workspace'))
+            except Exception, e:
+                logging.error(str(e))
+        d = AddGitDialog(self)
+        if d.ShowModal() == wx.ID_OK:
+            self.genProjectList()
+
 
     def onRemove(self, evt):
         dlg = RemoveDialog(self)
@@ -448,6 +463,16 @@ class FBFrontDeskFrame(wx.Frame):
             self.name, self.path = None, None
             self.genProjectList()
 
+    def onUpdate(self, evt):
+        p = self.rcfile.getProject(self.name)
+        if not 'repo' in p:
+            # error
+            return
+        path = p['path']
+        _cmd = 'git -C {} pull'.format(path)
+        subprocess.call(_cmd, stdin=None,stderr=None,stdout=None,shell=True)
+
+
 
     def onPLSel(self, evt = None):
 
@@ -456,6 +481,7 @@ class FBFrontDeskFrame(wx.Frame):
             self.name, self.path, = None, None
             self.SetTitle('foxBMS Front Desk')
             xrc.XRCCTRL(self, 'remove_b').Enable(False)
+            xrc.XRCCTRL(self, 'update_git_b').Enable(False)
             self.status['configured'] = False
             self.status['initialized'] = False
 
@@ -474,6 +500,10 @@ class FBFrontDeskFrame(wx.Frame):
         self.name, self.path, = _name, _path 
         self.SetTitle('foxBMS Front Desk | %s' % _name)
         xrc.XRCCTRL(self, 'remove_b').Enable(True)
+        if self.rcfile.isGIT(self.name):
+            xrc.XRCCTRL(self, 'update_git_b').Enable(True)
+        else:
+            xrc.XRCCTRL(self, 'update_git_b').Enable(False)
 
 
         if _idx != self.oldProjectSel:
@@ -607,6 +637,7 @@ class FBFrontDeskFrame(wx.Frame):
         webbrowser.open('file://' + _path)
 
     def runWaf(self, *args, **kwargs):
+        print self._waf
         xrc.XRCCTRL(self, 'details_tc').Clear()
         _fo = True
         if len(args) < 1: 
@@ -726,6 +757,53 @@ class AddDirDialog(wx.Dialog):
         _path = xrc.XRCCTRL(self, 'add_dir_dp').GetPath()
         return _name, _path
 
+class AddGitDialog(wx.Dialog):
+
+    def __init__(self, parent):
+        pre = wx.PreDialog()
+        self.parent = parent
+        parent._resources.LoadOnDialog(pre, parent, "add_git_dlg")
+        self.PostCreate(pre)
+        xrc.XRCCTRL(self, 'add_git_repo_tc').Bind(wx.EVT_TEXT, self.onFC)
+        xrc.XRCCTRL(self, 'project_name_tc').Bind(wx.EVT_TEXT, self.onTC)
+        xrc.XRCCTRL(self,
+                'add_git_repo_tc').SetValue(self.parent.rcfile.get('gitrepo'))
+        self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
+        self.Fit()
+
+    def onOK(self, evt):
+        _name, _path = self.getNameAndPath()
+        self.gitrepo = _path
+        _name, _path = self.parent.rcfile.getProjectNameAndPath(_name)
+        self.path = _path
+        print _name, _path
+        if os.path.exists(_path):
+            xrc.XRCCTRL(self, 'add_git_error_txt').SetLabel('%s already exists.\nChoose different name.' % _name)
+            return
+        xrc.XRCCTRL(self, 'add_git_error_txt').SetForegroundColour((0,0,0))
+        xrc.XRCCTRL(self, 'add_git_error_txt').SetLabel('Extracting...')
+        self.checkOut()
+        self.parent.rcfile.addProject(_name, _path, self.gitrepo)
+        evt.Skip()
+
+    def checkOut(self):
+        _cmd = 'git clone {} {}'.format(self.gitrepo, self.path)
+        subprocess.call(_cmd, stdin=None,stderr=None,stdout=None,shell=True)
+
+    def getNameAndPath(self):
+        _name = xrc.XRCCTRL(self, 'project_name_tc').GetValue()
+        _path = xrc.XRCCTRL(self, 'add_git_repo_tc').GetValue()
+        return _name, _path
+
+    def onTC(self, evt):
+        xrc.XRCCTRL(self, 'add_git_error_txt').SetLabel('')
+
+    def onFC(self, evt):
+        _name, _path = self.getNameAndPath()
+        if _name.strip() == '':
+            _name = _path.split(os.path.sep)[-1].split('.')[0]
+            xrc.XRCCTRL(self, 'project_name_tc').SetValue(_name)
+
 
 class AddArchiveDialog(wx.Dialog):
 
@@ -738,6 +816,7 @@ class AddArchiveDialog(wx.Dialog):
         xrc.XRCCTRL(self, 'project_name_tc').Bind(wx.EVT_TEXT, self.onTC)
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
         self.Fit()
+
 
     def onOK(self, evt):
         _name, _path = self.getNameAndPath()
