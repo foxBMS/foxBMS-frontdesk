@@ -65,7 +65,7 @@ else:
 
 setup(
         name = "foxbms",
-        version = "0.5",
+        version = "0.7",
         packages = find_packages(),
         author = "foxBMS",
         author_email = "info@foxbms.org",
