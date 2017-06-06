@@ -82,7 +82,7 @@ def isFoxBMS(path):
     if not os.path.isfile(os.path.join(path, 'wscript')):
         return False
 
-def isInitialized(path):
+def isInitialized_old(path):
     '''
     Educated guess if configure and documentation generation have been
     performed.
@@ -94,6 +94,17 @@ def isInitialized(path):
         return False
     if not os.path.isfile(os.path.join(path, 'build', 'foxbmsconfig.h')):
         return False
+    return True
+
+def isInitialized(path):
+    '''
+    Educated guess if configure and documentation generation have been
+    performed.
+    '''
+
+    for d in ['foxBMS-documentation']:
+        if not os.path.isdir(os.path.join(path, d)):
+            return False
     return True
 
 class FBIntProperty(wxpg.PyIntProperty):
@@ -191,6 +202,7 @@ class FBConfigurePanel(wx.Panel):
 
         self.parent = parent
         self.initialized = False
+        self.root = None
 
         self._resources = xrc.EmptyXmlResource()
         self._resources.Load(_getpath('xrc', 'configure.xrc'))
@@ -235,7 +247,7 @@ class FBConfigurePanel(wx.Panel):
         self.variables = foxygen.Variables()
 
         xrc.XRCCTRL(self, 'project_description_tc').SetValue(self.variables.description)
-        self.stree = foxygen.SourceTree(self.parent.root, self.variables)
+        self.stree = foxygen.SourceTree(self.root, self.variables)
         self.stree.collect()
         self.variables.fixDuplicates()
 
