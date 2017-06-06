@@ -63,7 +63,7 @@ class FoxBMSConfig(object):
     defaults = {
             'workspace': os.path.expanduser(os.path.join('~', 'foxbms')),
             'projects': [],
-            'gitrepo': 'https://github.com/foxBMS/foxBMS-primary',
+            'gitrepo': 'https://github.com/foxBMS/foxBMS-setup',
             }
 
     def __init__(self, fpath = None):
@@ -135,6 +135,7 @@ class FoxBMSConfig(object):
         if not os.path.exists(self.fdir):
             os.makedirs(self.fdir)
         self.set('workspace', self.defaults['workspace'])
+        self.set('gitrepo', self.defaults['gitrepo'])
 
     def configExists(self):
         return os.path.isfile(self.fpath)
