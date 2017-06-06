@@ -83,6 +83,9 @@ sys.setdefaultencoding('utf8')
 
 
 class CustomConsoleHandler(logging.StreamHandler):
+    '''
+    Defers messages to console.
+    '''
  
     def __init__(self, textctrl):
         logging.StreamHandler.__init__(self)
@@ -247,6 +250,7 @@ class FBFrontDeskFrame(wx.Frame):
         self.dest = None
         self.archive = None
         self.existing = path
+        self.flashdata = inari.FlashData()
 
         self.oldProjectSel = -1
 
@@ -254,7 +258,8 @@ class FBFrontDeskFrame(wx.Frame):
 
         self.status = {
                 'initialized': False,
-                'configured': False,
+                'configured primary': False,
+                'configured secondary': False,
                 'built': False,
                 'flashed': False}
 
@@ -313,13 +318,20 @@ class FBFrontDeskFrame(wx.Frame):
         xrc.XRCCTRL(self, 'progress').SetMaxSize((-1, 3))
 
         self.pages = {}
-        self.pagekeys = ['projects', 'config', 'build', 'flash']
+
+        #self.pagekeys = ['projects', 'config', 'build', 'flash']
+        self.pagekeys = ['projects', 'config primary', 'config secondary', 'build', 'flash']
+
         for k in ['projects', 'build']:
             self.pages[k] = xrc.XRCCTRL(self, k + '_page')
-        self.pages['config'] = configure.FBConfigurePanel(self.nb)
-        self.nb.InsertPage(1, self.pages['config'], 'Configuration')
+        self.pages['config primary'] = configure.FBConfigurePanel(self.nb)
+        self.pages['config secondary'] = configure.FBConfigurePanel(self.nb)
 
-        self.pages['flash'] = inari.FBInariPanel(self.nb)
+        self.nb.InsertPage(1, self.pages['config primary'], 'Configuration Primary')
+        self.nb.InsertPage(2, self.pages['config secondary'], 'Configuration Secondary')
+
+        self.pages['flash'] = inari.FBInariPanel(self.nb,
+                flashdata=self.flashdata)
         self.nb.AddPage(self.pages['flash'], 'Flash foxBMS')
 
         '''
@@ -430,6 +442,10 @@ class FBFrontDeskFrame(wx.Frame):
             self.onPLSel()
 
     def onAddArchive(self, evt):
+        '''
+        Event handler, called when project addition from archive is selected
+        '''
+
         # update workspace dir
         self.rcfile.set('workspace', xrc.XRCCTRL(self, 'workspace_dp').GetPath())
         if not os.path.exists(self.rcfile.get('workspace')):
@@ -442,6 +458,10 @@ class FBFrontDeskFrame(wx.Frame):
             self.genProjectList()
 
     def onAddGit(self, evt):
+        '''
+        Event handler, called when project addition from git is selected
+        '''
+
         # update workspace dir
         self.rcfile.set('workspace', xrc.XRCCTRL(self, 'workspace_dp').GetPath())
         if not os.path.exists(self.rcfile.get('workspace')):
@@ -476,13 +496,16 @@ class FBFrontDeskFrame(wx.Frame):
 
     def onPLSel(self, evt = None):
 
+        print '---'
+
         if evt is None or evt.EventType == wx.EVT_LIST_ITEM_DESELECTED.typeId:
             _idx = -1
             self.name, self.path, = None, None
             self.SetTitle('foxBMS Front Desk')
             xrc.XRCCTRL(self, 'remove_b').Enable(False)
             xrc.XRCCTRL(self, 'update_git_b').Enable(False)
-            self.status['configured'] = False
+            self.status['configured primary'] = False
+            self.status['configured secondary'] = False
             self.status['initialized'] = False
 
             xrc.XRCCTRL(self, 'initialize_b').SetLabel('Initialize project')
@@ -507,7 +530,8 @@ class FBFrontDeskFrame(wx.Frame):
 
 
         if _idx != self.oldProjectSel:
-            self.status['configured'] = False
+            self.status['configured primary'] = False
+            self.status['configured secondary'] = False
             self.status['initialized'] = (_init == 'yes')
 
         self.oldProjectSel = _idx
@@ -536,18 +560,27 @@ class FBFrontDeskFrame(wx.Frame):
         self.status['initialized'] = True
         self.menu.FindItemById(xrc.XRCID('reference_mi')).Enable(True)
         self.menu.FindItemById(xrc.XRCID('documentation_mi')).Enable(True)
-        self.detectWaf(self.path)
         self._tasks = 4
-        self.runWaf('configure', 'doxygen', 'sphinx', wd = self.path)
+        self.runPython('bootstrap.py', wd = self.path)
+
+        #self.detectWaf(self.path)
+        #self.runWaf('configure', 'doxygen', 'sphinx', wd = self.path)
 
     def onBuild(self, evt):
+        '''
         self.detectWaf(self.path)
         logging.debug('path: %s, waf: %s' % (self.path, self._waf))
         self._tasks = 1
         self.runWaf('build', wd = self.path)
         self.status['built'] = True
+        '''
+        self._tasks = 1
+        self.runPython('build.py', '-a', wd = self.path)
+        self.status['built'] = True
 
     def onPageChanging(self, evt):
+        print '---'
+
         _old = self.nb.GetSelection() 
 
         if sys.platform.startswith('win'):
@@ -585,17 +618,30 @@ class FBFrontDeskFrame(wx.Frame):
             evt.Veto()
             return
 
-        if not self.status['configured']:
-            if _new > self.pagekeys.index('config'):
+        # FIXME
+        if not self.status['configured primary']:
+            if _new > self.pagekeys.index('config primary'):
                 evt.Veto()
                 return
-            self.nb.root = self.path
-            wx.CallAfter(self.pages['config'].clear)
-            wx.CallAfter(self.pages['config'].collect)
-            self.status['configured'] = True
+            # FIXME not really portable
+            self.pages['config primary'].root = os.path.join(self.path, 'foxBMS-primary')
+
+            wx.CallAfter(self.pages['config primary'].clear)
+            wx.CallAfter(self.pages['config primary'].collect)
+            self.status['configured primary'] = True
+            return
+
+        if not self.status['configured secondary']:
+            if _new > self.pagekeys.index('config secondary'):
+                evt.Veto()
+                return
+            self.pages['config secondary'].root = os.path.join(self.path, 'foxBMS-secondary')
+            wx.CallAfter(self.pages['config secondary'].clear)
+            wx.CallAfter(self.pages['config secondary'].collect)
+            self.status['configured secondary'] = True
             return
             
-        if self.status['configured']:
+        if self.status['configured secondary']:
            logging.debug('build button enabled')
            xrc.XRCCTRL(self, 'build_b').Enable(True)
            return
@@ -636,22 +682,25 @@ class FBFrontDeskFrame(wx.Frame):
         _path = os.path.abspath(os.path.join(self.path, 'build/doc/doxygen/html/index.html'))
         webbrowser.open('file://' + _path)
 
+    def runPython(self, *args, **kwargs):
+        return self.runCMD(sys.executable, *args, **kwargs)
+
     def runWaf(self, *args, **kwargs):
-        print self._waf
+        return self.runPython(sys._waf, *args, **kwargs)
+
+    def runCMD(self, *args, **kwargs):
         xrc.XRCCTRL(self, 'details_tc').Clear()
         _fo = True
         if len(args) < 1: 
             return
-        _CMD = [sys.executable, self._waf]
         _fo = True
-        _CMD += args
+        _CMD = args
         rt = RunThread(self, _CMD, fulloutput = _fo, **kwargs)
         rt.start()
         return rt
 
     def onClear(self, evt):
         xrc.XRCCTRL(self, 'details_tc').Clear()
-
 
     def writeLog(self, msg):
         if msg == '__all_done__':
@@ -787,8 +836,11 @@ class AddGitDialog(wx.Dialog):
         evt.Skip()
 
     def checkOut(self):
+        self.parent.runCMD('git', 'clone', self.gitrepo, self.path)
+        '''
         _cmd = 'git clone {} {}'.format(self.gitrepo, self.path)
         subprocess.call(_cmd, stdin=None,stderr=None,stdout=None,shell=True)
+        '''
 
     def getNameAndPath(self):
         _name = xrc.XRCCTRL(self, 'project_name_tc').GetValue()
