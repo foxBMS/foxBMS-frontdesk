@@ -53,7 +53,7 @@ www.foxbms.org
 :author:    Christian Freund <christian.freund@iisb.fraunhofer.de>
 """
 
-import foxbms
+#import foxbms
 
 import wx
 from wx import xrc
@@ -614,38 +614,31 @@ class FBFrontDeskFrame(wx.Frame):
         if _old > _new:
             return
 
+        # can't change page at all if project has not been inititialized
         if not self.status['initialized']:
             evt.Veto()
             return
 
-        # FIXME
-        if not self.status['configured primary']:
-            if _new > self.pagekeys.index('config primary'):
-                evt.Veto()
+        # allow traversing thru configuration pages, one-by-one
+        for _board in ['primary', 'secondary']:
+            if not self.status['configured ' + _board]:
+                if _new > self.pagekeys.index('config ' + _board):
+                    evt.Veto()
+                    return
+                self.pages['config ' + _board].root = os.path.join(self.path, 'foxBMS-' + _board)
+                wx.CallAfter(self.pages['config ' + _board].clear)
+                wx.CallAfter(self.pages['config ' + _board].collect)
+                self.status['configured ' + _board] = True
                 return
-            # FIXME not really portable
-            self.pages['config primary'].root = os.path.join(self.path, 'foxBMS-primary')
-
-            wx.CallAfter(self.pages['config primary'].clear)
-            wx.CallAfter(self.pages['config primary'].collect)
-            self.status['configured primary'] = True
-            return
-
-        if not self.status['configured secondary']:
-            if _new > self.pagekeys.index('config secondary'):
-                evt.Veto()
-                return
-            self.pages['config secondary'].root = os.path.join(self.path, 'foxBMS-secondary')
-            wx.CallAfter(self.pages['config secondary'].clear)
-            wx.CallAfter(self.pages['config secondary'].collect)
-            self.status['configured secondary'] = True
-            return
-            
+           
+        # only allow building after configuration has been made
         if self.status['configured secondary']:
            logging.debug('build button enabled')
            xrc.XRCCTRL(self, 'build_b').Enable(True)
            return
            
+
+        # flash page accesible only after build page has been visited
         if _new > self.pagekeys.index('build') and not self.status['built']:
             evt.Veto()
             return
@@ -675,12 +668,15 @@ class FBFrontDeskFrame(wx.Frame):
         self._waf = _wafs[-1]
 
     def onOpenDocumentation(self, evt):
-        _path = os.path.abspath(os.path.join(self.path, 'build/doc/sphinx/html/index.html'))
+        _path = os.path.abspath(os.path.join(self.path,
+            self.rcfile.get('sphinxdir')))
         webbrowser.open('file://' + _path)
 
     def onOpenReference(self, evt):
-        _path = os.path.abspath(os.path.join(self.path, 'build/doc/doxygen/html/index.html'))
-        webbrowser.open('file://' + _path)
+        for _board in ['primary', 'secondary']:
+            _path = os.path.abspath(os.path.join(self.path,
+                self.rcfile.get('doxygendir') % {'board': _board}))
+            webbrowser.open('file://' + _path)
 
     def runPython(self, *args, **kwargs):
         return self.runCMD(sys.executable, *args, **kwargs)
@@ -753,7 +749,7 @@ class FBFrontDeskFrame(wx.Frame):
         info.SetName('foxBMS FrontDesk')
         info.SetVersion(foxbms.__version__)
         info.SetDescription('The foxBMS FrontDesk is an IDE for the free.open.flexible battery management system foxBMS.')
-        info.SetCopyright('(c) 2010--2016 Fraunhofer Gesellschaft zur Foerderung der angewandten Forschung e.V.')
+        info.SetCopyright('(c) 2010--2017 Fraunhofer Gesellschaft zur Foerderung der angewandten Forschung e.V.')
         info.SetWebSite('http://www.foxbms.org')
         '''
         with open(_getpath('xrc', 'LICENSE'), 'r') as _f:
