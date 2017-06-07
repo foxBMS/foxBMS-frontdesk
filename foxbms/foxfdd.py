@@ -53,7 +53,6 @@ www.foxbms.org
 :author:    Christian Freund <christian.freund@iisb.fraunhofer.de>
 """
 
-#import foxbms
 
 import wx
 from wx import xrc
@@ -747,7 +746,12 @@ class FBFrontDeskFrame(wx.Frame):
         info = wx.AboutDialogInfo()
         info.SetIcon(wx.Icon(_getpath('xrc', 'foxbms250px.png'), wx.BITMAP_TYPE_PNG))
         info.SetName('foxBMS FrontDesk')
-        info.SetVersion(foxbms.__version__)
+
+        try:
+            import foxbms
+            info.SetVersion(foxbms.__version__)
+        except:
+            info.SetVersion('git')
         info.SetDescription('The foxBMS FrontDesk is an IDE for the free.open.flexible battery management system foxBMS.')
         info.SetCopyright('(c) 2010--2017 Fraunhofer Gesellschaft zur Foerderung der angewandten Forschung e.V.')
         info.SetWebSite('http://www.foxbms.org')
