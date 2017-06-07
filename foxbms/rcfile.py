@@ -64,7 +64,7 @@ class FoxBMSConfig(object):
             'workspace': os.path.expanduser(os.path.join('~', 'foxbms')),
             'projects': [],
             'gitrepo': 'https://github.com/foxBMS/foxBMS-setup',
-            'sphinxdir': 'build/sphinx/foxBMS-documentation/sphinx/html/index.html',
+            'sphinxdir': 'build/sphinx/foxBMS-documentation/doc/sphinx/html/index.html',
             'doxygendir': 'build/%(board)s/doxygen/html/index.html'
             }
 
